@@ -1,85 +1,201 @@
 'use client'
 
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { ArrowRight, MessageCircle } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { cases, type Case } from '@/lib/cases-data'
 
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 28 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
-})
+const palettes = [
+  { bg: '#65AAC2', fg: '#FFFFFF' }, // Court blue
+  { bg: '#ADBA5E', fg: '#1A1A1A' }, // Lime
+  { bg: '#869A69', fg: '#FFFFFF' }, // Sage
+  { bg: '#1A1A1A', fg: '#E7E5D7' }, // Charcoal
+]
+
+const testimonials = [
+  {
+    id: 't1',
+    quote:
+      'Nicolai byggede en hurtig og elegant hjemmeside til vores bistro på under to uger. Fantastisk pris-kvalitet.',
+    author: 'Lokal Bistro',
+  },
+  {
+    id: 't2',
+    quote:
+      'Professionel, ærlig og fokus på sikkerhed fra start til slut. Klart en der tager sit håndværk seriøst.',
+    author: 'Den Sikre Håndværker',
+  },
+  {
+    id: 't3',
+    quote:
+      'En moderne webshop fra dag ét — Stripe integreret, hurtig og nem at vedligeholde. Kan varmt anbefales.',
+    author: 'E-handel Light',
+  },
+]
 
 export default function Hero() {
   return (
-    <section
-      id="hero"
-      className="relative min-h-screen flex items-center justify-center grid-bg overflow-hidden"
-    >
-      {/* Radial gradient overlay */}
-      <div className="absolute inset-0 bg-radial-[at_50%_30%] from-cyan-950/30 via-transparent to-transparent pointer-events-none" />
+    <section className="min-h-[100dvh] flex flex-col items-center pt-24 md:pt-28 pb-10 px-6 md:px-10">
+      {/* Centered header */}
+      <header className="text-center max-w-3xl mx-auto rise-in" style={{ animationDelay: '0.1s' }}>
+        <p className="text-[11px] md:text-xs font-semibold tracking-[0.22em] uppercase text-[var(--color-fg-muted)]">
+          Datamatiker-studerende fra EAMV Herning · Web design / Branding / Sikker arkitektur
+        </p>
+        <h1 className="mt-5 font-[family-name:var(--font-archivo-black)] text-4xl md:text-6xl lg:text-7xl tracking-tight leading-[0.92] text-[var(--color-fg)]">
+          Moderne web.
+          <br />
+          Bygget med AI.
+        </h1>
+        <p className="mt-5 text-sm md:text-base text-[var(--color-fg-muted)] leading-relaxed max-w-xl mx-auto">
+          Lokale virksomheder vælger mig fordi det går stærkt, ser godt ud
+          og er sikkert fra dag ét.
+        </p>
+      </header>
 
-      {/* Cyan glow blob */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-cyan-500/5 blur-3xl rounded-full pointer-events-none animate-pulse-glow" />
+      {/* Card row */}
+      <div className="w-full max-w-6xl mx-auto mt-10 md:mt-12">
+        <div className="overflow-x-auto md:overflow-visible -mx-6 md:mx-0 px-6 md:px-0">
+          <div className="flex gap-5 md:gap-6 md:justify-center md:w-full py-8">
+            {cases.map((c, i) => (
+              <FlipCard
+                key={c.id}
+                c={c}
+                palette={palettes[i % palettes.length]}
+                bobDelay={i * 0.7}
+                riseDelay={0.25 + i * 0.08}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-24 pb-16">
-        {/* Eyebrow badge */}
-        <motion.div {...fadeUp(0)} className="inline-flex items-center gap-2 mb-8">
-          <span className="px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-mono tracking-widest uppercase">
-            Webudvikling · AI · CyberSecurity
-          </span>
-        </motion.div>
-
-        {/* Main headline */}
-        <motion.h1
-          {...fadeUp(0.1)}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6"
-        >
-          Moderne Webudvikling.{' '}
-          <br className="hidden sm:block" />
-          <span className="text-cyan-400 text-glow-cyan">Bygget med AI.</span>
-          <br className="hidden sm:block" />
-          Sikret med sund fornuft.
-        </motion.h1>
-
-        {/* Sub headline */}
-        <motion.p
-          {...fadeUp(0.2)}
-          className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10"
-        >
-          Jeg kombinerer de nyeste AI-teknologier med klassisk datalogi for at bygge lynhurtige
-          hjemmesider for virksomheder, mens jeg uddanner mig til fremtidens IT-sikkerhedsekspert.
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div {...fadeUp(0.3)} className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/#cases"
-            className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-xl transition-all duration-200 hover:shadow-[0_0_24px_rgba(6,182,212,0.4)]"
+      {/* Testimonials */}
+      <div className="w-full max-w-5xl mx-auto mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
+        {testimonials.map((t, i) => (
+          <figure
+            key={t.id}
+            className="text-center md:text-left rise-in"
+            style={{ animationDelay: `${0.6 + i * 0.1}s` }}
           >
-            Se mine cases
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <Link
-            href="/#kontakt"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-medium rounded-xl transition-all duration-200 hover:bg-white/5"
-          >
-            <MessageCircle size={16} />
-            Lad os tage en snak
-          </Link>
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 0.6 }}
-          className="mt-20 flex flex-col items-center gap-2 text-slate-600"
-        >
-          <div className="w-px h-10 bg-gradient-to-b from-transparent to-slate-600 animate-bounce" />
-          <span className="text-xs font-mono tracking-widest uppercase">Scroll</span>
-        </motion.div>
+            <blockquote className="text-sm leading-relaxed text-[var(--color-fg)]">
+              <span aria-hidden="true" className="opacity-40">“</span>
+              {t.quote}
+              <span aria-hidden="true" className="opacity-40">”</span>
+            </blockquote>
+            <figcaption className="mt-3 text-[10px] uppercase tracking-[0.22em] font-semibold text-[var(--color-fg-muted)]">
+              — {t.author}
+            </figcaption>
+          </figure>
+        ))}
       </div>
     </section>
+  )
+}
+
+function FlipCard({
+  c,
+  palette,
+  bobDelay,
+  riseDelay,
+}: {
+  c: Case
+  palette: { bg: string; fg: string }
+  bobDelay: number
+  riseDelay: number
+}) {
+  const [flipped, setFlipped] = useState(false)
+  const tiltRef = useRef<HTMLDivElement>(null)
+
+  function handleMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (flipped) return
+    const el = tiltRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width // 0..1
+    const y = (e.clientY - rect.top) / rect.height // 0..1
+    const rotY = (x - 0.5) * 18 // -9..+9
+    const rotX = (0.5 - y) * 14 // -7..+7
+    el.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale(1.04)`
+  }
+
+  function handleLeave() {
+    const el = tiltRef.current
+    if (!el) return
+    el.style.transform = ''
+  }
+
+  return (
+    <div
+      className="rise-in shrink-0 w-[230px] md:w-[220px] lg:w-[240px]"
+      style={{ animationDelay: `${riseDelay}s` }}
+    >
+      <div className="card-perspective aspect-[3/4] w-full">
+        <div
+          ref={tiltRef}
+          className="tilt-wrap"
+          onMouseMove={handleMove}
+          onMouseLeave={handleLeave}
+        >
+          <div className="float-wrap" style={{ animationDelay: `${bobDelay}s` }}>
+            <button
+              type="button"
+              onClick={() => setFlipped((f) => !f)}
+              className={`flip-inner block text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] ${
+                flipped ? 'flipped' : ''
+              }`}
+              aria-pressed={flipped}
+            >
+              {/* Front */}
+              <div
+                className="flip-face flex flex-col justify-between p-5"
+                style={{ background: palette.bg, color: palette.fg }}
+              >
+                <div className="flex items-start justify-between">
+                  <span className="text-[10px] uppercase tracking-[0.2em] opacity-80">
+                    {c.category}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] opacity-60">
+                    {c.year}
+                  </span>
+                </div>
+                <span className="font-[family-name:var(--font-archivo-black)] text-[5rem] md:text-[5.5rem] leading-none self-end">
+                  {c.initials}
+                </span>
+                <span className="font-[family-name:var(--font-archivo-black)] text-base tracking-tight uppercase">
+                  {c.title}
+                </span>
+              </div>
+
+              {/* Back */}
+              <div
+                className="flip-face flip-back flex flex-col justify-between p-5"
+                style={{ background: palette.fg, color: palette.bg }}
+              >
+                <div>
+                  <span className="text-[10px] uppercase tracking-[0.2em] opacity-70">
+                    {c.category} · {c.year}
+                  </span>
+                  <h3 className="font-[family-name:var(--font-archivo-black)] text-xl md:text-2xl mt-2 leading-tight uppercase">
+                    {c.title}
+                  </h3>
+                  <p className="mt-3 text-xs leading-relaxed">
+                    {c.longDescription}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {c.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="text-[9px] uppercase tracking-[0.12em] px-2 py-1 border rounded-full"
+                      style={{ borderColor: palette.bg }}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

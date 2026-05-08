@@ -1,104 +1,86 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 const links = [
-  { label: 'Mission', href: '/#mission' },
-  { label: 'Cases', href: '/#cases' },
-  { label: 'Skills', href: '/#skills' },
-  { label: 'Om', href: '/#om' },
+  { label: 'Cases', href: '/cases' },
+  { label: 'Templates', href: '/templates' },
+  { label: 'Om mig', href: '/om-mig' },
 ]
 
 export default function Navigation() {
-  const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handler, { passive: true })
-    return () => window.removeEventListener('scroll', handler)
-  }, [])
+  const [open, setOpen] = useState(false)
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-[#030712]/90 backdrop-blur-md border-b border-slate-800/60'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
+    <nav className="absolute top-0 left-0 right-0 z-50">
+      <div className="px-6 md:px-10 py-6 md:py-7 flex items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-2 group"
+          className="font-[family-name:var(--font-archivo-black)] text-2xl md:text-3xl tracking-tight leading-none text-[var(--color-fg)] hover:opacity-80 transition-opacity"
         >
-          <span className="w-7 h-7 rounded-md bg-cyan-500 flex items-center justify-center text-xs font-bold text-black group-hover:bg-cyan-400 transition-colors">
-            N
-          </span>
-          <span className="font-semibold text-white tracking-tight">
-            Nicolai Dahl
-            <span className="text-slate-500 font-normal text-sm ml-1">– Tech & Security</span>
-          </span>
+          NICOLAI&nbsp;DAHL
         </Link>
 
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-8">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+              className="text-xs font-semibold tracking-[0.18em] uppercase text-[var(--color-fg)] hover:opacity-60 transition-opacity"
             >
               {l.label}
             </Link>
           ))}
           <Link
-            href="/#kontakt"
-            className="ml-3 px-4 py-2 text-sm font-medium bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg transition-colors"
+            href="/kontakt"
+            className="px-5 py-2.5 rounded-full bg-[var(--color-fg)] text-[var(--color-bg)] text-xs font-semibold tracking-[0.18em] uppercase hover:bg-[var(--color-sage)] hover:text-white transition-colors"
           >
-            Kontakt
+            Kontakt mig
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
         <button
-          className="md:hidden flex flex-col gap-1.5 p-2"
-          onClick={() => setMenuOpen((o) => !o)}
+          className="md:hidden p-2"
+          onClick={() => setOpen((o) => !o)}
           aria-label="Åbn menu"
         >
           <span
-            className={`block w-5 h-0.5 bg-slate-400 transition-all ${menuOpen ? 'rotate-45 translate-y-2' : ''}`}
+            className={`block w-6 h-[2px] bg-[var(--color-fg)] transition-transform ${
+              open ? 'translate-y-[7px] rotate-45' : ''
+            }`}
           />
           <span
-            className={`block w-5 h-0.5 bg-slate-400 transition-all ${menuOpen ? 'opacity-0' : ''}`}
+            className={`block w-6 h-[2px] bg-[var(--color-fg)] my-1.5 transition-opacity ${
+              open ? 'opacity-0' : ''
+            }`}
           />
           <span
-            className={`block w-5 h-0.5 bg-slate-400 transition-all ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`}
+            className={`block w-6 h-[2px] bg-[var(--color-fg)] transition-transform ${
+              open ? '-translate-y-[7px] -rotate-45' : ''
+            }`}
           />
         </button>
       </div>
 
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden border-t border-slate-800 bg-[#030712]/95 backdrop-blur-md px-6 py-4 flex flex-col gap-2">
+      {open && (
+        <div className="md:hidden border-t border-[var(--color-fg)]/15 px-6 py-6 flex flex-col gap-4 bg-[var(--color-bg)]">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              onClick={() => setMenuOpen(false)}
-              className="py-2 text-slate-300 hover:text-white transition-colors"
+              onClick={() => setOpen(false)}
+              className="py-1 text-[var(--color-fg)] uppercase tracking-[0.18em] text-xs font-semibold"
             >
               {l.label}
             </Link>
           ))}
           <Link
-            href="/#kontakt"
-            onClick={() => setMenuOpen(false)}
-            className="mt-2 py-2 px-4 text-center font-medium bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg transition-colors"
+            href="/kontakt"
+            onClick={() => setOpen(false)}
+            className="mt-2 py-3 px-4 rounded-full text-center bg-[var(--color-fg)] text-[var(--color-bg)] uppercase tracking-[0.18em] text-xs font-semibold"
           >
-            Kontakt
+            Kontakt mig
           </Link>
         </div>
       )}
