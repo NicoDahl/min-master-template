@@ -18,10 +18,8 @@ const HERO_POSITIONS = [
   { xPct: 0.80, yPct: 0.72 },
 ]
 
-// Initial angles in the orbit (degrees, 0=right, 90=down)
 const ORBIT_START = [-90, 0, 90, 180]
-
-const REVOLUTION_SECONDS = 26 // one full rotation
+const REVOLUTION_SECONDS = 26
 const LERP = 0.18
 
 export default function BubbleStage() {
@@ -53,21 +51,22 @@ export default function BubbleStage() {
         ? Math.min(150, vw * 0.34)
         : Math.min(240, vw * 0.22)
 
-      // travel: 0 (hero) → 1 (assembled in cases). starts at 0.2vh, completes at 1.0vh
+      // travel: 0 (hero) → 1 (orbit assembled)
       const travel = clamp((sy - 0.2 * vh) / (0.8 * vh), 0, 1)
-      // fadeOut: kicks in as user scrolls past cases (heroH = 1vh, casesH ≈ 1vh)
-      const fadeOut = clamp((sy - 1.7 * vh) / (0.4 * vh), 0, 1)
+      // Tightened fade-out: starts earlier, ends well before Om mig (which begins at 2vh)
+      const fadeOut = clamp((sy - 1.45 * vh) / (0.4 * vh), 0, 1)
 
-      // Title visibility: visible only while in cases section
-      const titleIn = clamp((sy - 0.6 * vh) / (0.4 * vh), 0, 1)
-      const titleOut = clamp((sy - 1.6 * vh) / (0.4 * vh), 0, 1)
+      const titleIn = clamp((sy - 0.65 * vh) / (0.35 * vh), 0, 1)
+      const titleOut = clamp((sy - 1.35 * vh) / (0.3 * vh), 0, 1)
       const titleOpacity = titleIn * (1 - titleOut)
       if (titleRef.current) {
         titleRef.current.style.opacity = String(titleOpacity)
       }
 
-      const orbitSpeed = activeRef.current ? 0 : 1 / REVOLUTION_SECONDS
+      const isAnyActive = activeRef.current !== null
+      const orbitSpeed = isAnyActive ? 0 : 1 / REVOLUTION_SECONDS
       const orbitDeg = elapsed * orbitSpeed * 360
+      const driftMult = isAnyActive ? 0 : 1
 
       const cx = vw / 2
       const cy = vh / 2
@@ -79,13 +78,13 @@ export default function BubbleStage() {
         const isActive = items[i].id === activeRef.current
         const isOtherActive = activeRef.current !== null && !isActive
 
-        // hero scatter target (with subtle drift, attenuated as travel increases)
-        const driftX = Math.sin(elapsed * 0.55 + i * 1.7) * 10
-        const driftY = Math.cos(elapsed * 0.45 + i * 1.3) * 14
+        // hero scatter target with subtle drift, attenuated as travel increases
+        const driftX = Math.sin(elapsed * 0.55 + i * 1.7) * 10 * driftMult
+        const driftY = Math.cos(elapsed * 0.45 + i * 1.3) * 14 * driftMult
         const heroX = HERO_POSITIONS[i].xPct * vw + driftX * (1 - travel)
         const heroY = HERO_POSITIONS[i].yPct * vh + driftY * (1 - travel)
 
-        // orbit target
+        // orbit target (frozen if any bubble is active)
         const angle = ORBIT_START[i] + orbitDeg
         const rad = (angle * Math.PI) / 180
         const orbX = cx + Math.cos(rad) * orbitR
@@ -93,15 +92,18 @@ export default function BubbleStage() {
 
         let tx: number, ty: number, ts: number
         if (isActive) {
-          tx = cx
-          ty = cy
-          ts = isMobile ? 2.4 : 2.7
+          // Freeze position wherever bubble currently sits — flip happens in place
+          tx = st.x
+          ty = st.y
+          ts = isMobile ? 1.5 : 1.7
         } else {
           tx = heroX + (orbX - heroX) * travel
           ty = heroY + (orbY - heroY) * travel
-          ts = isOtherActive ? 0.8 : 1
+          ts = isOtherActive ? 0.85 : 1
         }
-        const baseOpacity = isActive ? 1 : (1 - fadeOut) * (isOtherActive ? 0.35 : 1)
+        // Active bubbles also fade out when scrolled away (so they don't linger)
+        const baseOpacity =
+          (1 - fadeOut) * (isActive ? 1 : isOtherActive ? 0.35 : 1)
 
         if (!st.init) {
           st.x = tx
@@ -131,7 +133,7 @@ export default function BubbleStage() {
 
   return (
     <>
-      {/* Floating "Mine cases" label that fades in over the orbit */}
+      {/* Centered cases title (shown only over the orbit) */}
       <div
         ref={titleRef}
         className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none text-center"
@@ -145,15 +147,17 @@ export default function BubbleStage() {
         </h2>
       </div>
 
-      {/* Bubble layer */}
-      <div className="fixed inset-0 z-30 pointer-events-none">
+      {/* Bubble layer (perspective for the 3D flip) */}
+      <div
+        className="fixed inset-0 z-30 pointer-events-none"
+        style={{ perspective: '1500px' }}
+      >
         {items.map((c, i) => (
           <BubbleEl
             key={c.id}
             c={c}
             palette={palettes[i % palettes.length]}
             isActive={active === c.id}
-            isOtherActive={active !== null && active !== c.id}
             onClick={() =>
               setActive((prev) => (prev === c.id ? null : c.id))
             }
@@ -171,14 +175,12 @@ function BubbleEl({
   c,
   palette,
   isActive,
-  isOtherActive,
   onClick,
   assignRef,
 }: {
   c: Case
   palette: { bg: string; fg: string }
   isActive: boolean
-  isOtherActive: boolean
   onClick: () => void
   assignRef: (el: HTMLDivElement | null) => void
 }) {
@@ -189,6 +191,7 @@ function BubbleEl({
         position: 'absolute',
         left: 0,
         top: 0,
+        transformStyle: 'preserve-3d',
         willChange: 'transform, opacity',
       }}
     >
@@ -197,45 +200,62 @@ function BubbleEl({
         onClick={onClick}
         aria-pressed={isActive}
         aria-label={`${c.title} — ${isActive ? 'luk' : 'åbn detaljer'}`}
-        className="rounded-full flex items-center justify-center text-center cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-fg)]/20"
+        className="rounded-full focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-fg)]/20"
         style={{
-          background: palette.bg,
-          color: palette.fg,
           width: 'clamp(96px, 14vw, 150px)',
           height: 'clamp(96px, 14vw, 150px)',
+          position: 'relative',
+          transformStyle: 'preserve-3d',
+          transition:
+            'transform 0.85s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease',
+          transform: isActive ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          background: 'transparent',
           border: 'none',
           padding: 0,
-          overflow: 'hidden',
-          transition: 'box-shadow 0.4s ease',
+          cursor: 'pointer',
           boxShadow: isActive
-            ? '0 30px 60px -20px rgba(0,0,0,0.25)'
+            ? '0 30px 60px -20px rgba(0,0,0,0.30)'
             : '0 8px 24px -8px rgba(0,0,0,0.15)',
         }}
       >
-        {isActive ? (
-          <ExpandedContent c={c} />
-        ) : (
+        {/* Front face */}
+        <span
+          className="absolute inset-0 rounded-full flex items-center justify-center"
+          style={{
+            background: palette.bg,
+            color: palette.fg,
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+          }}
+        >
           <span className="font-[family-name:var(--font-archivo-black)] text-xl md:text-2xl tracking-tight">
             {c.initials}
           </span>
-        )}
-      </button>
-    </div>
-  )
-}
+        </span>
 
-function ExpandedContent({ c }: { c: Case }) {
-  return (
-    <div className="px-5 py-4 flex flex-col items-center gap-1.5 max-w-[88%]">
-      <span className="text-[8px] uppercase tracking-[0.22em] opacity-70">
-        {c.category} · {c.year}
-      </span>
-      <h3 className="font-[family-name:var(--font-archivo-black)] text-sm md:text-base leading-tight uppercase tracking-tight">
-        {c.title}
-      </h3>
-      <p className="text-[9px] md:text-[10px] leading-relaxed mt-0.5 line-clamp-5">
-        {c.longDescription}
-      </p>
+        {/* Back face */}
+        <span
+          className="absolute inset-0 rounded-full flex flex-col items-center justify-center text-center"
+          style={{
+            background: palette.fg,
+            color: palette.bg,
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            padding: '14% 12%',
+          }}
+        >
+          <span className="text-[8px] md:text-[10px] uppercase tracking-[0.2em] opacity-70 mb-1">
+            {c.year}
+          </span>
+          <span className="font-[family-name:var(--font-archivo-black)] text-[11px] md:text-sm leading-tight uppercase tracking-tight mb-1.5">
+            {c.title}
+          </span>
+          <span className="text-[8px] md:text-[10px] leading-snug opacity-90 line-clamp-3">
+            {c.description}
+          </span>
+        </span>
+      </button>
     </div>
   )
 }
