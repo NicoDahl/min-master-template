@@ -1,6 +1,7 @@
-import { Mail, Phone, ExternalLink } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import MorphingName from '@/components/MorphingName'
 import BubbleStage from '@/components/BubbleStage'
+import KontaktPanel from '@/components/KontaktPanel'
 
 export default function Home() {
   return (
@@ -20,11 +21,14 @@ export default function Home() {
           </p>
         </section>
 
-        {/* Cases overview — bubbles assemble into rotating circle here */}
+        {/* Cases — bubbles assemble into a carousel here. Visual content
+            (text panel, bubble layer, prev/next/dots) is rendered by
+            BubbleStage as a fixed overlay; this section just reserves the
+            scroll dwell. */}
         <section
           id="cases"
-          className="h-[100dvh] flex items-center justify-center px-6 relative"
-          aria-label="Cases-overblik"
+          className="h-[100dvh] relative"
+          aria-label="Cases-karussel"
         />
 
         {/* Om mig */}
@@ -114,31 +118,14 @@ export default function Home() {
               <h3 className="font-[family-name:var(--font-archivo-black)] text-2xl md:text-3xl tracking-tight">
                 lad os tage en snak
               </h3>
-              <div className="text-sm md:text-base leading-relaxed">
-                <p className="mb-6">
-                  Skriv til mig om dit projekt — eller bare en uforpligtende kop
-                  kaffe. Jeg svarer typisk inden for 24 timer.
-                </p>
-                <ul className="flex flex-col gap-3">
-                  <ContactLink
-                    icon={<Mail className="w-4 h-4" />}
-                    href="mailto:kontakt@nicolaidahl.dk"
-                    label="kontakt@nicolaidahl.dk"
-                  />
-                  <ContactLink
-                    icon={<Phone className="w-4 h-4" />}
-                    href="tel:+4500000000"
-                    label="+45 XX XX XX XX"
-                  />
-                  <ContactLink
-                    icon={<ExternalLink className="w-4 h-4" />}
-                    href="https://www.linkedin.com/"
-                    label="LinkedIn"
-                    external
-                  />
-                </ul>
-              </div>
+              <p className="text-sm md:text-base leading-relaxed">
+                Skriv til mig om dit projekt — eller bare en uforpligtende kop
+                kaffe. Vælg fanen der passer dig bedst. Jeg svarer typisk inden
+                for 24 timer.
+              </p>
             </div>
+
+            <KontaktPanel />
           </div>
         </section>
       </main>
@@ -153,30 +140,3 @@ export default function Home() {
   )
 }
 
-function ContactLink({
-  icon,
-  href,
-  label,
-  external = false,
-}: {
-  icon: React.ReactNode
-  href: string
-  label: string
-  external?: boolean
-}) {
-  return (
-    <li>
-      <a
-        href={href}
-        target={external ? '_blank' : undefined}
-        rel={external ? 'noopener noreferrer' : undefined}
-        className="inline-flex items-center gap-3 hover:underline underline-offset-4"
-      >
-        <span className="w-9 h-9 rounded-full bg-[var(--color-fg)] text-[var(--color-blue)] inline-flex items-center justify-center shrink-0">
-          {icon}
-        </span>
-        <span>{label}</span>
-      </a>
-    </li>
-  )
-}
