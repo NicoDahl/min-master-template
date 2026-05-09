@@ -1,5 +1,6 @@
 import { Mail } from 'lucide-react'
 import MorphingName from '@/components/MorphingName'
+import MorphingPortrait from '@/components/MorphingPortrait'
 import BubbleStage from '@/components/BubbleStage'
 import KontaktPanel from '@/components/KontaktPanel'
 
@@ -7,6 +8,7 @@ export default function Home() {
   return (
     <>
       <MorphingName />
+      <MorphingPortrait />
       <BubbleStage />
 
       <main>
@@ -24,10 +26,11 @@ export default function Home() {
         {/* Cases — bubbles assemble into a carousel here. Visual content
             (text panel, bubble layer, prev/next/dots) is rendered by
             BubbleStage as a fixed overlay; this section just reserves the
-            scroll dwell. */}
+            scroll dwell. 150dvh gives room for travel + carousel browsing
+            + a clean fade-out before Om mig. */}
         <section
           id="cases"
-          className="h-[100dvh] relative"
+          className="h-[150dvh] relative"
           aria-label="Cases-karussel"
         />
 
@@ -47,15 +50,17 @@ export default function Home() {
               <span className="block">om</span>
               <span className="flex items-end gap-3 md:gap-5">
                 <span>mig.</span>
+                {/* Portrait slot — the actual image is rendered by
+                    <MorphingPortrait /> as a fixed overlay that lerps from
+                    the hero into this exact box on scroll. We keep this span
+                    so the heading layout reserves the right space. */}
                 <span
-                  aria-label="Portræt af Nicolai (placeholder)"
-                  role="img"
-                  className="inline-block rounded-2xl md:rounded-3xl overflow-hidden mb-[0.04em] shrink-0"
+                  data-portrait-slot
+                  aria-hidden="true"
+                  className="inline-block rounded-2xl md:rounded-3xl shrink-0 mb-[0.04em]"
                   style={{
                     width: 'clamp(72px, 11vw, 170px)',
                     height: 'clamp(72px, 11vw, 170px)',
-                    background:
-                      'linear-gradient(135deg, #2A2A2A 0%, #5A5A55 60%, #869A69 100%)',
                   }}
                 />
               </span>
